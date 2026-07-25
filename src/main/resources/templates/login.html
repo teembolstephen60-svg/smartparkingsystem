@@ -1,0 +1,36 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login · Smart Parking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="card">
+    <div class="card-header">
+      <div class="badge">P</div>
+      <div class="wordmark">Smart Parking<span>Management System</span></div>
+    </div>
+    <div class="card-body">
+      <h1 class="title">Sign In</h1>
+      <p class="subtitle">Enter your details to reserve a space.</p>
+      <form th:action="@{/login}" method="post">
+        <div class="field">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" required autofocus>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit" class="btn">Log In</button>
+      </form>
+      <p class="foot-link">No account yet? <a href="/register">Register here</a></p>
+    </div>
+  </div>
+</body>
+</html>

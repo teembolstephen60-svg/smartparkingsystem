@@ -1,0 +1,101 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard · Smart Parking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="dashboard-shell">
+    <div class="dashboard-header">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="badge">P</div>
+        <div class="wordmark">Smart Parking<span>Management System</span></div>
+      </div>
+      <div style="display:flex; align-items:center; gap:16px;">
+        <div class="user-chip">Signed in as <strong th:text="${username}">User</strong></div>
+        <form class="logout-form" th:action="@{/logout}" method="post">
+          <button type="submit" class="btn btn-ghost btn-small" style="background:transparent;color:#fff;border-color:#fff;">Logout</button>
+        </form>
+      </div>
+    </div>
+    <div class="dashboard-body">
+      <div class="stat-grid">
+        <div class="stat-card"><div class="value" id="statTotal">—</div><div class="label">Total Spaces</div></div>
+        <div class="stat-card accent-available"><div class="value" id="statAvailable">—</div><div class="label">Available</div></div>
+        <div class="stat-card accent-occupied"><div class="value" id="statOccupied">—</div><div class="label">Occupied</div></div>
+        <div class="stat-card accent-rate"><div class="value" id="statRate">—</div><div class="label">Occupancy Rate</div></div>
+      </div>
+      <h2 class="section-title">Available Spaces</h2>
+      <ul class="space-list" id="spaceList"><li class="empty">Loading spaces…</li></ul>
+      <div class="tab-row">
+        <button class="tab-btn active" onclick="showPanel('bookings', this)">My Bookings</button>
+        <button class="tab-btn" onclick="showPanel('notifications', this)">Notifications</button>
+      </div>
+      <div class="panel active" id="panel-bookings"><div id="bookingsList" class="empty">Loading…</div></div>
+      <div class="panel" id="panel-notifications"><div id="notificationsList" class="empty">Loading…</div></div>
+    </div>
+  </div>
+  <script>
+    function loadStats() {
+      fetch('/api/analytics/occupancy').then(r => r.json()).then(d => {
+        document.getElementById('statTotal').textContent = d.totalSpaces;
+        document.getElementById('statAvailable').textContent = d.available;
+        document.getElementById('statOccupied').textContent = d.occupied;
+        document.getElementById('statRate').textContent = d.occupancyRatePercent + '%';
+      });
+    }
+    function loadSpaces() {
+      fetch('/api/parking/available').then(r => r.json()).then(spaces => {
+        const list = document.getElementById('spaceList');
+        list.innerHTML = '';
+        if (spaces.length === 0) { list.innerHTML = '<li class="empty">No spaces available right now.</li>'; return; }
+        spaces.forEach(s => {
+          const li = document.createElement('li');
+          li.className = 'space-row';
+          li.innerHTML = '<span><span class="status-dot"></span>' + s.zone + ' · Space #' + s.spaceId + '</span>';
+          const btn = document.createElement('button');
+          btn.className = 'btn btn-small';
+          btn.textContent = 'Book';
+          btn.onclick = () => bookSpace(s.spaceId);
+          li.appendChild(btn);
+          list.appendChild(li);
+        });
+      });
+    }
+    function bookSpace(spaceId) {
+      fetch('/api/bookings/' + spaceId, { method: 'POST' }).then(r => r.json()).then(() => {
+        loadStats(); loadSpaces(); loadMyBookings();
+      });
+    }
+    function loadMyBookings() {
+      fetch('/api/bookings/my').then(r => r.json()).then(bookings => {
+        const el = document.getElementById('bookingsList');
+        if (bookings.length === 0) { el.innerHTML = '<div class="empty">No bookings yet.</div>'; return; }
+        el.innerHTML = bookings.map(b =>
+          '<div class="list-item">' + b.space.zone + ' · Space #' + b.space.spaceId + ' — ' + b.status +
+          '<div class="meta">' + b.bookingTime + '</div></div>').join('');
+      });
+    }
+    function loadMyNotifications() {
+      fetch('/api/notifications/my').then(r => r.json()).then(notes => {
+        const el = document.getElementById('notificationsList');
+        if (notes.length === 0) { el.innerHTML = '<div class="empty">No notifications yet.</div>'; return; }
+        el.innerHTML = notes.map(n =>
+          '<div class="list-item">' + n.message + '<div class="meta">' + n.createdAt + '</div></div>').join('');
+      });
+    }
+    function showPanel(name, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-' + name).classList.add('active');
+    }
+    loadStats(); loadSpaces(); loadMyBookings(); loadMyNotifications();
+  </script>
+</body>
+</html>

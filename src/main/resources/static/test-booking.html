@@ -1,0 +1,39 @@
+
+<!DOCTYPE html>
+<html>
+<head><title>Test Booking</title></head>
+<body>
+    <h2>Test: Book Space #1</h2>
+    <button onclick="bookSpace()">Book Space 1</button>
+    <button onclick="getMyBookings()">My Bookings</button>
+    <pre id="result"></pre>
+    <script>
+        function bookSpace() {
+            fetch('http://localhost:8080/api/bookings/1', {
+                method: 'POST',
+                credentials: 'include'
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(err => {
+                document.getElementById('result').textContent = 'Error: ' + err;
+            });
+        }
+        function getMyBookings() {
+            fetch('http://localhost:8080/api/bookings/my', {
+                method: 'GET',
+                credentials: 'include'
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(err => {
+                document.getElementById('result').textContent = 'Error: ' + err;
+            });
+        }
+    </script>
+</body>
+</html>
