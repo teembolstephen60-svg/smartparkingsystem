@@ -1,5 +1,7 @@
 
 package com.parking.model;
+import java.time.LocalDateTime;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
@@ -21,6 +23,9 @@ public class user {
     private String password;
     @Column(nullable = false)
     private String role; // e.g. "USER" or "ADMIN"
+    @Column(name = "last_login")
+    private LocalDateTime lastLogin;
+    
     public user() {}
     public user(String username, String password, String role) {
         this.username = username;
@@ -33,5 +38,9 @@ public class user {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
     public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
+    public void setRole(String role) { this.role = role; } 
+    public LocalDateTime getLastLogin(){
+        return lastLogin;
+    }
+    public void setLastLogin(LocalDateTime lastLogin){this.lastLogin = lastLogin;}
 }

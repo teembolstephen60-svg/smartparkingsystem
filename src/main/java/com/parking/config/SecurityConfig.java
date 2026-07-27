@@ -11,12 +11,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 import com.parking.security.CustomUserDetailsService;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import com.parking.repository.UserRepository;
+import java.time.LocalDateTime;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
-    public SecurityConfig(CustomUserDetailsService userDetailsService) {
+    private final UserRepository userRepository;
+    public SecurityConfig(CustomUserDetailsService userDetailsService, UserRepository userRepository) {
         this.userDetailsService = userDetailsService;
+        this.userRepository = userRepository;
     }
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -30,6 +35,18 @@ public class SecurityConfig {
         return provider;
     }
     @Bean
+    public AuthenticationSuccessHandler loginSuccessHandler(){
+        return (request , response, authentication) ->{
+            String username = authentication.getName();
+            userRepository.findByUsername(username).ifPresent(u ->{
+                u.setLastLogin(LocalDateTime.now());
+                userRepository.save(u);
+
+            });
+            response.sendRedirect("/dashboard");
+        };
+    }
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
@@ -40,7 +57,7 @@ public class SecurityConfig {
             )
             .formLogin(form -> form
                 .loginPage("/login")
-                .defaultSuccessUrl("/dashboard", true)
+                .successHandler(loginSuccessHandler())
                 .permitAll()
             )
             .logout(logout -> logout.permitAll())
